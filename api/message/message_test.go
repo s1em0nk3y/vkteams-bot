@@ -1,0 +1,233 @@
+package message
+
+import (
+	"bytes"
+	"context"
+	"crypto/tls"
+	"log"
+	"net/http"
+	"testing"
+
+	"github.com/caarlos0/env/v11"
+	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
+	"github.com/s1em0nk3y/vkteams-bot"
+	"github.com/stretchr/testify/assert"
+)
+
+var TestCfg = struct {
+	Token     string `env:"VK_TOKEN,required"`
+	URL       string `env:"VK_URL" envDefault:"https://myteam.mail.ru/bot/v1"`
+	Proxy     bool   `env:"PROXY_ENABLE"`
+	SSLVerify bool   `env:"SSL_VERIFY"`
+	ChatID    string `env:"VK_CHAT_ID,required"`
+	MessageID string `env:"MESSAGE_ID,required"`
+	FileID    string `env:"FILE_ID,required"`
+}{}
+
+var httpClient = &http.Client{
+	Transport: http.DefaultTransport,
+}
+
+var testLogger = zerolog.New(zerolog.NewConsoleWriter())
+
+var testBot *vkteams.Bot
+
+func TestMain(m *testing.M) {
+	godotenv.Load("../../.env")
+	if err := env.Parse(&TestCfg); err != nil {
+		log.Fatal(err)
+	}
+	if !TestCfg.Proxy {
+		httpClient.Transport.(*http.Transport).Proxy = nil
+	}
+	httpClient.Transport.(*http.Transport).TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: TestCfg.SSLVerify,
+	}
+	testBot = vkteams.New(TestCfg.Token,
+		vkteams.WithApiURL(TestCfg.URL),
+		vkteams.WithHTTPClient(httpClient),
+	)
+	m.Run()
+}
+
+func TestMessageService_SendText(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		msg *vkteams.MessageRequest
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantMsgID string
+		assertion assert.ErrorAssertionFunc
+	}{
+		{
+			name: "Correct use; Forwarding message",
+			args: args{
+				ctx: testLogger.WithContext(context.Background()),
+				msg: &vkteams.MessageRequest{
+					ChatID:        TestCfg.ChatID,
+					Text:          "Some <b>Test</b> Text",
+					ForwardChatID: TestCfg.ChatID,
+					ForwardMsgID:  TestCfg.MessageID,
+					ParseMode:     vkteams.ParseModeHTML,
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				if err != nil {
+					tt.Errorf("wanted nil got %s", err.Error())
+					return false
+				}
+				return true
+			},
+		},
+		{
+			name: "Correct use; Replying message",
+			args: args{
+				ctx: testLogger.WithContext(context.Background()),
+				msg: &vkteams.MessageRequest{
+					ChatID:     TestCfg.ChatID,
+					Text:       "Some Test Text",
+					ReplyMsgID: TestCfg.MessageID,
+					ParseMode:  vkteams.ParseModeMarkdown,
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				if err != nil {
+					tt.Errorf("wanted nil got %s", err.Error())
+					return false
+				}
+				return true
+			},
+		},
+		{
+			name: "Reply to nonexist message",
+			args: args{
+				ctx: testLogger.WithContext(context.Background()),
+				msg: &vkteams.MessageRequest{
+					ChatID:     TestCfg.ChatID,
+					Text:       "Some Test Text",
+					ReplyMsgID: "NON EXIST REPLY ID",
+					ParseMode:  vkteams.ParseModeMarkdown,
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.ErrorContains(tt, err, "response status is not ok")
+			},
+		},
+		{
+			name: "Context canceled",
+			args: args{
+				ctx: func() context.Context {
+					ctx, cancel := context.WithCancel(testLogger.WithContext(context.Background()))
+					cancel()
+					return ctx
+
+				}(),
+				msg: &vkteams.MessageRequest{
+					ChatID: TestCfg.ChatID,
+					Text:   "Context canceled",
+				},
+			},
+			wantMsgID: "",
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.ErrorIs(tt, err, context.Canceled)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &MessageService{
+				client: testBot,
+			}
+			gotMsgID, err := s.SendText(tt.args.ctx, tt.args.msg)
+			tt.assertion(t, err)
+			if err == nil {
+				assert.NotEmpty(t, gotMsgID)
+			}
+		})
+	}
+}
+
+func TestMessageService_SendFile(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		msg *vkteams.FileMessageRequest
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantMsgID  string
+		wantFileID string
+		assertion  assert.ErrorAssertionFunc
+		wantsOk    bool
+	}{
+		{
+			name: "Send raw data",
+			args: args{
+				ctx: context.Background(),
+				msg: &vkteams.FileMessageRequest{
+					MessageRequest: vkteams.MessageRequest{
+						ChatID: TestCfg.ChatID,
+						Text:   "Some Text",
+					},
+					Contents: bytes.NewBuffer([]byte("some text")),
+					Filename: "Filename.txt",
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.Nil(tt, err)
+			},
+			wantsOk: true,
+		},
+		{
+			name: "Send by file id",
+			args: args{
+				ctx: context.Background(),
+				msg: &vkteams.FileMessageRequest{
+					MessageRequest: vkteams.MessageRequest{
+						ChatID: TestCfg.ChatID,
+						Text:   "Description",
+					},
+					FileID: TestCfg.FileID,
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.Nil(tt, err)
+			},
+			wantsOk: true,
+		},
+		{
+			name: "Send by non exist file id",
+			args: args{
+				ctx: context.Background(),
+				msg: &vkteams.FileMessageRequest{
+					MessageRequest: vkteams.MessageRequest{
+						ChatID: TestCfg.ChatID,
+						Text:   "Description",
+					},
+					FileID: "NON EXIST FILE ID",
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.ErrorContains(tt, err, "response status is not ok")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &MessageService{
+				client: testBot,
+			}
+			gotMsgID, gotFileID, err := s.SendFile(tt.args.ctx, tt.args.msg)
+			if tt.assertion != nil {
+				tt.assertion(t, err)
+			}
+			if tt.wantsOk {
+				assert.NotEmpty(t, gotMsgID)
+				assert.NotEmpty(t, gotFileID)
+			}
+		})
+	}
+}
