@@ -23,6 +23,12 @@ type Payload struct {
 	QueryID         string      `json:"queryId"`
 	CallbackMessage BasePayload `json:"message"`
 	CallbackData    string      `json:"callbackData"`
+
+	// For events where members added/removed
+	MembersLeft []Contact `json:"leftMembers"`
+	MembersNew  []Contact `json:"newMembers"`
+	AddedBy     Contact   `json:"addedBy"`
+	RemovedBy   Contact   `json:"removedBy"`
 }
 
 type BasePayload struct {
