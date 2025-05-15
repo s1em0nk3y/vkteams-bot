@@ -7,9 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 
-	"github.com/rs/zerolog"
 	"github.com/s1em0nk3y/vkteams-bot"
 )
 
@@ -18,26 +16,9 @@ type MessageService struct {
 }
 
 // /messages/sendText (Get)
-func (s *MessageService) SendText(ctx context.Context, msg *vkteams.MessageRequest) (msgID string, err error) {
-	params := url.Values{
-		"chatId": {msg.ChatID},
-		"text":   {msg.Text},
-	}
-	log := zerolog.Ctx(ctx)
-	if msg.ReplyMsgID != "" {
-		params.Set("replyMsgId", msg.ReplyMsgID)
-	}
-	if msg.ForwardMsgID != "" {
-		params.Set("forwardMsgId", msg.ForwardMsgID)
-		params.Set("forwardChatId", msg.ForwardChatID)
-	}
-	if msg.KeyboardMarkup != nil {
-		log.Error().Msg("Keyboard Markup not implemented")
-	}
-	if msg.ParseMode != vkteams.ParseModeUnknown {
-		params.Set("parseMode", msg.ParseMode.String())
-	}
-
+func (s *MessageService) SendText(ctx context.Context, msg *vkteams.Message) (msgID string, err error) {
+	params := buildParams(msg)
+	params.Set("text", msg.Text)
 	req, err := s.client.PerformRequest(ctx, http.MethodGet, "/messages/sendText", params, nil)
 	if err != nil {
 		return "", err
@@ -64,16 +45,19 @@ func (s *MessageService) SendText(ctx context.Context, msg *vkteams.MessageReque
 }
 
 // /messages/sendFile (Get/Post)
-func (s *MessageService) SendFile(ctx context.Context, msg *vkteams.FileMessageRequest) (msgID string, fileID string, err error) {
+func (s *MessageService) SendFile(ctx context.Context, msg *vkteams.FileMessage) (msgID string, fileID string, err error) {
 	return s.sendFile(ctx, msg, "/messages/sendFile")
 }
 
-func (s *MessageService) SendVoice(ctx context.Context, msg *vkteams.FileMessageRequest) (msgID string, fileID string, err error) {
+// /messages/sendVoice (Get/Post)
+func (s *MessageService) SendVoice(ctx context.Context, msg *vkteams.FileMessage) (msgID string, fileID string, err error) {
 	return s.sendFile(ctx, msg, "/messages/sendVoice")
 }
 
-// // /messages/editText
-// func (s *MessageService) EditMessage(msg *vkteams.EditMessageRequest) error {}
+// /messages/editText
+// func (s *MessageService) EditMessage(msg *vkteams.EditMessage) error {
+
+// }
 
 // // /messages/deleteMessage
 // func (s *MessageService) DeleteMessages(*vkteams.DeleteMessageRequest) error {}

@@ -58,7 +58,7 @@ func TestMain(m *testing.M) {
 func TestMessageService_SendText(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *vkteams.MessageRequest
+		msg *vkteams.Message
 	}
 	tests := []struct {
 		name      string
@@ -70,7 +70,7 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Correct use; Forwarding message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &vkteams.MessageRequest{
+				msg: &vkteams.Message{
 					ChatID:        TestCfg.ChatID,
 					Text:          "Some <b>Test</b> Text",
 					ForwardChatID: TestCfg.ChatID,
@@ -90,7 +90,7 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Correct use; Replying message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &vkteams.MessageRequest{
+				msg: &vkteams.Message{
 					ChatID:     TestCfg.ChatID,
 					Text:       "Some Test Text",
 					ReplyMsgID: TestCfg.MessageID,
@@ -109,7 +109,7 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Reply to nonexist message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &vkteams.MessageRequest{
+				msg: &vkteams.Message{
 					ChatID:     TestCfg.ChatID,
 					Text:       "Some Test Text",
 					ReplyMsgID: "NON EXIST REPLY ID",
@@ -129,7 +129,7 @@ func TestMessageService_SendText(t *testing.T) {
 					return ctx
 
 				}(),
-				msg: &vkteams.MessageRequest{
+				msg: &vkteams.Message{
 					ChatID: TestCfg.ChatID,
 					Text:   "Context canceled",
 				},
@@ -157,7 +157,7 @@ func TestMessageService_SendText(t *testing.T) {
 func TestMessageService_SendFile(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *vkteams.FileMessageRequest
+		msg *vkteams.FileMessage
 	}
 	tests := []struct {
 		name       string
@@ -171,8 +171,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send raw data",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessageRequest{
-					MessageRequest: vkteams.MessageRequest{
+				msg: &vkteams.FileMessage{
+					Message: vkteams.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Some Text",
 					},
@@ -189,8 +189,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send by file id",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessageRequest{
-					MessageRequest: vkteams.MessageRequest{
+				msg: &vkteams.FileMessage{
+					Message: vkteams.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Description",
 					},
@@ -206,8 +206,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send by non exist file id",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessageRequest{
-					MessageRequest: vkteams.MessageRequest{
+				msg: &vkteams.FileMessage{
+					Message: vkteams.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Description",
 					},
@@ -222,8 +222,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send Voice file",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessageRequest{
-					MessageRequest: vkteams.MessageRequest{
+				msg: &vkteams.FileMessage{
+					Message: vkteams.Message{
 						ChatID: TestCfg.ChatID,
 					},
 					Contents: func() io.Reader {
@@ -265,7 +265,7 @@ func TestMessageService_SendFile(t *testing.T) {
 func TestMessageService_SendVoice(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *vkteams.FileMessageRequest
+		msg *vkteams.FileMessage
 	}
 	tests := []struct {
 		name       string
@@ -279,8 +279,8 @@ func TestMessageService_SendVoice(t *testing.T) {
 			name: "Send Voice file",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessageRequest{
-					MessageRequest: vkteams.MessageRequest{
+				msg: &vkteams.FileMessage{
+					Message: vkteams.Message{
 						ChatID: TestCfg.ChatID,
 					},
 					Contents: func() io.Reader {

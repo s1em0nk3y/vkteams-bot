@@ -2,7 +2,7 @@ package vkteams
 
 import "io"
 
-type MessageRequest struct {
+type Message struct {
 	ChatID         string
 	Text           string
 	ReplyMsgID     string
@@ -13,28 +13,23 @@ type MessageRequest struct {
 	ParseMode      ParseMode
 }
 
-type FileMessageRequest struct {
-	MessageRequest
+type FileMessage struct {
+	Message
 	FileID   string
 	Filename string
 	Contents io.Reader
 }
 
-type EditMessageRequest struct {
-	ChatID         string
-	Text           string
-	MessageID      string
-	KeyboardMarkup *KeyboardMarkup
-	MessageFormat  *MessageFormat
-	ParseMode      ParseMode
+type EditMessage struct {
+	Message
 }
 
-type DeleteMessageRequest struct {
+type DeleteMessage struct {
 	ChatID     string
 	MessageIDs []string
 }
 
-type AnswerCallbackRequest struct {
+type AnswerCallback struct {
 	QueryID   string
 	Text      string
 	ShowAlert bool

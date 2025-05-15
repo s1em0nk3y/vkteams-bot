@@ -9,35 +9,16 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"net/url"
 
-	"github.com/rs/zerolog"
 	"github.com/s1em0nk3y/vkteams-bot"
 )
 
-func (s *MessageService) sendFile(ctx context.Context, msg *vkteams.FileMessageRequest, path string) (msgID string, fileID string, err error) {
-	params := url.Values{
-		"chatId":  {msg.ChatID},
-		"caption": {msg.Text},
-	}
+func (s *MessageService) sendFile(ctx context.Context, msg *vkteams.FileMessage, path string) (msgID string, fileID string, err error) {
+	params := buildParams(&msg.Message)
+	params.Set("caption", msg.Text)
 	if msg.FileID != "" {
 		params.Set("fileId", msg.FileID)
 	}
-	log := zerolog.Ctx(ctx)
-	if msg.ReplyMsgID != "" {
-		params.Set("replyMsgId", msg.ReplyMsgID)
-	}
-	if msg.ForwardMsgID != "" {
-		params.Set("forwardMsgId", msg.ForwardMsgID)
-		params.Set("forwardChatId", msg.ForwardChatID)
-	}
-	if msg.KeyboardMarkup != nil {
-		log.Error().Msg("Keyboard Markup not implemented")
-	}
-	if msg.ParseMode != vkteams.ParseModeUnknown {
-		params.Set("parseMode", msg.ParseMode.String())
-	}
-
 	response := struct {
 		Id     string `json:"msgId"`
 		FileID string `json:"fileId"`
