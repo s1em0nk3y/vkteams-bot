@@ -139,6 +139,43 @@ func TestMessageService_SendText(t *testing.T) {
 				return assert.ErrorIs(tt, err, context.Canceled)
 			},
 		},
+		{
+			name: "Correct usage; create buttons",
+			args: args{
+				ctx: testLogger.WithContext(context.Background()),
+				msg: &vkteams.Message{
+					ChatID:    TestCfg.ChatID,
+					Text:      "Some Test Text",
+					ParseMode: vkteams.ParseModeHTML,
+					KeyboardMarkup: &vkteams.KeyboardMarkup{
+						{
+							{
+								Text:     "First",
+								Style:    vkteams.ButtonAttention,
+								Callback: "somecallback1",
+							},
+							{
+								Text:  "Second Button, With Url",
+								URL:   "https://example.com",
+								Style: vkteams.ButtonBase,
+							},
+							{
+								Text:     "Third, Primary style button",
+								Callback: "somecallback3",
+								Style:    vkteams.ButtonPrimary,
+							},
+						},
+					},
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				if err != nil {
+					tt.Errorf("wanted nil got %s", err.Error())
+					return false
+				}
+				return true
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

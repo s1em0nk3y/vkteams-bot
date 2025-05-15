@@ -37,7 +37,23 @@ type AnswerCallback struct {
 	URL       string
 }
 
-type KeyboardMarkup struct{}
+type KeyboardMarkup [][]Button
+
+type Button struct {
+	Text     string      `json:"text"`
+	URL      string      `json:"url,omitempty"`
+	Callback string      `json:"callbackData,omitempty"`
+	Style    ButtonStyle `json:"style,omitempty"`
+}
+
+// Button styles
+type ButtonStyle string
+
+const (
+	ButtonBase      ButtonStyle = "base"
+	ButtonPrimary   ButtonStyle = "primary"
+	ButtonAttention ButtonStyle = "attention"
+)
 
 type MessageFormat struct{}
 
