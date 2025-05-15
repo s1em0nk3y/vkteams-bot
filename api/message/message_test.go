@@ -371,3 +371,55 @@ func TestMessageService_EditMessage(t *testing.T) {
 		})
 	}
 }
+
+func TestMessageService_DeleteMessages(t *testing.T) {
+	type fields struct {
+		client *vkteams.Bot
+	}
+	type args struct {
+		ctx context.Context
+		msg *vkteams.DeleteMessage
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		assertion assert.ErrorAssertionFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &MessageService{
+				client: tt.fields.client,
+			}
+			tt.assertion(t, s.DeleteMessages(tt.args.ctx, tt.args.msg))
+		})
+	}
+}
+
+func TestMessageService_AnswerCallback(t *testing.T) {
+	type fields struct {
+		client *vkteams.Bot
+	}
+	type args struct {
+		ctx    context.Context
+		answer *vkteams.AnswerCallback
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		assertion assert.ErrorAssertionFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &MessageService{
+				client: tt.fields.client,
+			}
+			tt.assertion(t, s.AnswerCallback(tt.args.ctx, tt.args.answer))
+		})
+	}
+}
