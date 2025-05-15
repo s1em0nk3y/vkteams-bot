@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/caarlos0/env/v11"
@@ -16,13 +18,15 @@ import (
 )
 
 var TestCfg = struct {
-	Token     string `env:"VK_TOKEN,required"`
-	URL       string `env:"VK_URL" envDefault:"https://myteam.mail.ru/bot/v1"`
-	Proxy     bool   `env:"PROXY_ENABLE"`
-	SSLVerify bool   `env:"SSL_VERIFY"`
-	ChatID    string `env:"VK_CHAT_ID,required"`
-	MessageID string `env:"MESSAGE_ID,required"`
-	FileID    string `env:"FILE_ID,required"`
+	Token         string `env:"VK_TOKEN,required"`
+	URL           string `env:"VK_URL" envDefault:"https://myteam.mail.ru/bot/v1"`
+	Proxy         bool   `env:"PROXY_ENABLE"`
+	SSLVerify     bool   `env:"SSL_VERIFY"`
+	ChatID        string `env:"VK_CHAT_ID,required"`
+	MessageID     string `env:"MESSAGE_ID,required"`
+	FileID        string `env:"FILE_ID,required"`
+	VoiceFilePath string `env:"VOICE_FILE,required"`
+	VoiceFileID   string `env:"VOICE_FILE_ID,required"`
 }{}
 
 var httpClient = &http.Client{
@@ -214,6 +218,32 @@ func TestMessageService_SendFile(t *testing.T) {
 				return assert.ErrorContains(tt, err, "response status is not ok")
 			},
 		},
+		{
+			name: "Send Voice file",
+			args: args{
+				ctx: context.Background(),
+				msg: &vkteams.FileMessageRequest{
+					MessageRequest: vkteams.MessageRequest{
+						ChatID: TestCfg.ChatID,
+					},
+					Contents: func() io.Reader {
+						file, err := os.Open("../../" + TestCfg.VoiceFilePath)
+						if err != nil {
+							t.Fatalf("unable to open file: %s", TestCfg.VoiceFilePath)
+						}
+						defer file.Close()
+						by := &bytes.Buffer{}
+						io.Copy(by, file)
+						return by
+					}(),
+					Filename: "filename.aac",
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.Nil(tt, err)
+			},
+			wantsOk: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -221,6 +251,63 @@ func TestMessageService_SendFile(t *testing.T) {
 				client: testBot,
 			}
 			gotMsgID, gotFileID, err := s.SendFile(tt.args.ctx, tt.args.msg)
+			if tt.assertion != nil {
+				tt.assertion(t, err)
+			}
+			if tt.wantsOk {
+				assert.NotEmpty(t, gotMsgID)
+				assert.NotEmpty(t, gotFileID)
+			}
+		})
+	}
+}
+
+func TestMessageService_SendVoice(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		msg *vkteams.FileMessageRequest
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantMsgID  string
+		wantFileID string
+		assertion  assert.ErrorAssertionFunc
+		wantsOk    bool
+	}{
+		{
+			name: "Send Voice file",
+			args: args{
+				ctx: context.Background(),
+				msg: &vkteams.FileMessageRequest{
+					MessageRequest: vkteams.MessageRequest{
+						ChatID: TestCfg.ChatID,
+					},
+					Contents: func() io.Reader {
+						file, err := os.Open("../../" + TestCfg.VoiceFilePath)
+						if err != nil {
+							t.Fatalf("unable to open file: %s", TestCfg.VoiceFilePath)
+						}
+						defer file.Close()
+						by := &bytes.Buffer{}
+						io.Copy(by, file)
+						return by
+					}(),
+					Filename: "filename.aac",
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.Nil(tt, err)
+			},
+			wantsOk: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &MessageService{
+				client: testBot,
+			}
+			gotMsgID, gotFileID, err := s.SendVoice(tt.args.ctx, tt.args.msg)
 			if tt.assertion != nil {
 				tt.assertion(t, err)
 			}
