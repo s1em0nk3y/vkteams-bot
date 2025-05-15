@@ -22,6 +22,7 @@ type FileMessage struct {
 
 type EditMessage struct {
 	Message
+	MessageToEditID string
 }
 
 type DeleteMessage struct {

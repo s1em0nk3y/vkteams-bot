@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -68,7 +67,7 @@ func (s *MessageService) sendFile(ctx context.Context, msg *vkteams.FileMessage,
 		return "", "", fmt.Errorf("unable to decode response: %w", err)
 	}
 	if !response.Ok {
-		return "", "", errors.New("response status is not ok")
+		return "", "", ErrNotOk
 	}
 	return response.Id, msg.FileID, nil
 }

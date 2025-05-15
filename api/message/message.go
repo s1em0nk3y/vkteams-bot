@@ -4,7 +4,6 @@ package message
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -39,7 +38,7 @@ func (s *MessageService) SendText(ctx context.Context, msg *vkteams.Message) (ms
 		return "", fmt.Errorf("unable to decode response: %w", err)
 	}
 	if !response.Ok {
-		return "", errors.New("response status is not ok")
+		return "", ErrNotOk
 	}
 	return response.Id, nil
 }
@@ -55,9 +54,31 @@ func (s *MessageService) SendVoice(ctx context.Context, msg *vkteams.FileMessage
 }
 
 // /messages/editText
-// func (s *MessageService) EditMessage(msg *vkteams.EditMessage) error {
+func (s *MessageService) EditMessage(ctx context.Context, msg *vkteams.EditMessage) error {
+	params := buildParams(&msg.Message)
+	params.Set("msgId", msg.MessageToEditID)
+	params.Set("text", msg.Text)
+	req, err := s.client.PerformRequest(ctx, http.MethodGet, "/messages/editText", params, nil)
+	if err != nil {
+		return err
+	}
 
-// }
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	response := struct {
+		Ok bool `json:"Ok"`
+	}{}
+	if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return fmt.Errorf("unable to decode response: %w", err)
+	}
+	if !response.Ok {
+		return ErrNotOk
+	}
+	return nil
+}
 
 // // /messages/deleteMessage
 // func (s *MessageService) DeleteMessages(*vkteams.DeleteMessageRequest) error {}

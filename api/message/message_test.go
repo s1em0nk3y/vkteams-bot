@@ -318,3 +318,56 @@ func TestMessageService_SendVoice(t *testing.T) {
 		})
 	}
 }
+
+func TestMessageService_EditMessage(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		msg *vkteams.EditMessage
+	}
+	tests := []struct {
+		name      string
+		args      args
+		assertion assert.ErrorAssertionFunc
+	}{
+		{
+			name: "Edit Non exist message",
+			args: args{
+				ctx: testLogger.WithContext(context.Background()),
+				msg: &vkteams.EditMessage{
+					Message: vkteams.Message{
+						ChatID: TestCfg.ChatID,
+						Text:   "EDITED MESSAGE",
+					},
+					MessageToEditID: "Non exist message ID",
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.ErrorIs(tt, err, ErrNotOk)
+			},
+		},
+		{
+			name: "Correct edit",
+			args: args{
+				ctx: context.Background(),
+				msg: &vkteams.EditMessage{
+					Message: vkteams.Message{
+						ChatID: TestCfg.ChatID,
+						Text:   "EDITED MESSAGE",
+					},
+					MessageToEditID: TestCfg.MessageID,
+				},
+			},
+			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
+				return assert.Nil(tt, err)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &MessageService{
+				client: testBot,
+			}
+			tt.assertion(t, s.EditMessage(tt.args.ctx, tt.args.msg))
+		})
+	}
+}
