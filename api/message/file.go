@@ -8,11 +8,9 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/s1em0nk3y/vkteams-bot/types"
 )
 
-func (s *MessageService) sendFile(ctx context.Context, msg *types.FileMessage, path string) (msgID string, fileID string, err error) {
+func (s *MessageService) sendFile(ctx context.Context, msg *FileMessage, path string) (msgID string, fileID string, err error) {
 	params := buildParams(&msg.Message)
 	params.Set("caption", msg.Text)
 	if msg.FileID != "" {

@@ -15,7 +15,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/s1em0nk3y/vkteams-bot"
 	"github.com/s1em0nk3y/vkteams-bot/api/message"
-	"github.com/s1em0nk3y/vkteams-bot/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -60,7 +59,7 @@ func TestMain(m *testing.M) {
 func TestMessageService_SendText(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *types.Message
+		msg *message.Message
 	}
 	tests := []struct {
 		name      string
@@ -72,12 +71,12 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Correct use; Forwarding message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &types.Message{
+				msg: &message.Message{
 					ChatID:        TestCfg.ChatID,
 					Text:          "Some <b>Test</b> Text",
 					ForwardChatID: TestCfg.ChatID,
 					ForwardMsgID:  TestCfg.MessageID,
-					ParseMode:     types.ParseModeHTML,
+					ParseMode:     message.ParseModeHTML,
 				},
 			},
 			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
@@ -92,11 +91,11 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Correct use; Replying message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &types.Message{
+				msg: &message.Message{
 					ChatID:     TestCfg.ChatID,
 					Text:       "Some Test Text",
 					ReplyMsgID: TestCfg.MessageID,
-					ParseMode:  types.ParseModeMarkdown,
+					ParseMode:  message.ParseModeMarkdown,
 				},
 			},
 			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
@@ -111,11 +110,11 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Reply to nonexist message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &types.Message{
+				msg: &message.Message{
 					ChatID:     TestCfg.ChatID,
 					Text:       "Some Test Text",
 					ReplyMsgID: "NON EXIST REPLY ID",
-					ParseMode:  types.ParseModeMarkdown,
+					ParseMode:  message.ParseModeMarkdown,
 				},
 			},
 			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
@@ -131,7 +130,7 @@ func TestMessageService_SendText(t *testing.T) {
 					return ctx
 
 				}(),
-				msg: &types.Message{
+				msg: &message.Message{
 					ChatID: TestCfg.ChatID,
 					Text:   "Context canceled",
 				},
@@ -145,26 +144,26 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Correct usage; create buttons",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &types.Message{
+				msg: &message.Message{
 					ChatID:    TestCfg.ChatID,
 					Text:      "Some Test Text",
-					ParseMode: types.ParseModeHTML,
-					KeyboardMarkup: &types.KeyboardMarkup{
+					ParseMode: message.ParseModeHTML,
+					KeyboardMarkup: &message.KeyboardMarkup{
 						{
 							{
 								Text:     "First",
-								Style:    types.ButtonAttention,
+								Style:    message.ButtonAttention,
 								Callback: "somecallback1",
 							},
 							{
 								Text:  "Second Button, With Url",
 								URL:   "https://example.com",
-								Style: types.ButtonBase,
+								Style: message.ButtonBase,
 							},
 							{
 								Text:     "Third, Primary style button",
 								Callback: "somecallback3",
-								Style:    types.ButtonPrimary,
+								Style:    message.ButtonPrimary,
 							},
 						},
 					},
@@ -194,7 +193,7 @@ func TestMessageService_SendText(t *testing.T) {
 func TestMessageService_SendFile(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *types.FileMessage
+		msg *message.FileMessage
 	}
 	tests := []struct {
 		name       string
@@ -208,8 +207,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send raw data",
 			args: args{
 				ctx: context.Background(),
-				msg: &types.FileMessage{
-					Message: types.Message{
+				msg: &message.FileMessage{
+					Message: message.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Some Text",
 					},
@@ -226,8 +225,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send by file id",
 			args: args{
 				ctx: context.Background(),
-				msg: &types.FileMessage{
-					Message: types.Message{
+				msg: &message.FileMessage{
+					Message: message.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Description",
 					},
@@ -243,8 +242,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send by non exist file id",
 			args: args{
 				ctx: context.Background(),
-				msg: &types.FileMessage{
-					Message: types.Message{
+				msg: &message.FileMessage{
+					Message: message.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Description",
 					},
@@ -259,8 +258,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send Voice file",
 			args: args{
 				ctx: context.Background(),
-				msg: &types.FileMessage{
-					Message: types.Message{
+				msg: &message.FileMessage{
+					Message: message.Message{
 						ChatID: TestCfg.ChatID,
 					},
 					Contents: func() io.Reader {
@@ -300,7 +299,7 @@ func TestMessageService_SendFile(t *testing.T) {
 func TestMessageService_SendVoice(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *types.FileMessage
+		msg *message.FileMessage
 	}
 	tests := []struct {
 		name       string
@@ -314,8 +313,8 @@ func TestMessageService_SendVoice(t *testing.T) {
 			name: "Send Voice file",
 			args: args{
 				ctx: context.Background(),
-				msg: &types.FileMessage{
-					Message: types.Message{
+				msg: &message.FileMessage{
+					Message: message.Message{
 						ChatID: TestCfg.ChatID,
 					},
 					Contents: func() io.Reader {
@@ -355,7 +354,7 @@ func TestMessageService_SendVoice(t *testing.T) {
 func TestMessageService_EditMessage(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *types.EditMessage
+		msg *message.EditMessage
 	}
 	tests := []struct {
 		name      string
@@ -366,8 +365,8 @@ func TestMessageService_EditMessage(t *testing.T) {
 			name: "Edit Non exist message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &types.EditMessage{
-					Message: types.Message{
+				msg: &message.EditMessage{
+					Message: message.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "EDITED MESSAGE",
 					},
@@ -382,8 +381,8 @@ func TestMessageService_EditMessage(t *testing.T) {
 			name: "Correct edit",
 			args: args{
 				ctx: context.Background(),
-				msg: &types.EditMessage{
-					Message: types.Message{
+				msg: &message.EditMessage{
+					Message: message.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "EDITED MESSAGE",
 					},
@@ -406,7 +405,7 @@ func TestMessageService_EditMessage(t *testing.T) {
 func TestMessageService_DeleteMessages(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *types.DeleteMessage
+		msg *message.DeleteMessage
 	}
 	tests := []struct {
 		name      string
@@ -426,7 +425,7 @@ func TestMessageService_DeleteMessages(t *testing.T) {
 func TestMessageService_AnswerCallback(t *testing.T) {
 	type args struct {
 		ctx    context.Context
-		answer *types.AnswerCallback
+		answer *message.AnswerCallback
 	}
 	tests := []struct {
 		name      string

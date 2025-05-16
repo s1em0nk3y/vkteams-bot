@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-
-	vkteams "github.com/s1em0nk3y/vkteams-bot/types"
 )
 
 type MessageService struct {
@@ -18,7 +16,7 @@ type MessageService struct {
 func New(cli Client) MessageService { return MessageService{cli} }
 
 // /messages/sendText (Get)
-func (s *MessageService) SendText(ctx context.Context, msg *vkteams.Message) (msgID string, err error) {
+func (s *MessageService) SendText(ctx context.Context, msg *Message) (msgID string, err error) {
 	params := buildParams(msg)
 	params.Set("text", msg.Text)
 	req, err := s.client.PerformRequest(ctx, http.MethodGet, "/messages/sendText", params, nil)
@@ -47,17 +45,17 @@ func (s *MessageService) SendText(ctx context.Context, msg *vkteams.Message) (ms
 }
 
 // /messages/sendFile (Get/Post)
-func (s *MessageService) SendFile(ctx context.Context, msg *vkteams.FileMessage) (msgID string, fileID string, err error) {
+func (s *MessageService) SendFile(ctx context.Context, msg *FileMessage) (msgID string, fileID string, err error) {
 	return s.sendFile(ctx, msg, "/messages/sendFile")
 }
 
 // /messages/sendVoice (Get/Post)
-func (s *MessageService) SendVoice(ctx context.Context, msg *vkteams.FileMessage) (msgID string, fileID string, err error) {
+func (s *MessageService) SendVoice(ctx context.Context, msg *FileMessage) (msgID string, fileID string, err error) {
 	return s.sendFile(ctx, msg, "/messages/sendVoice")
 }
 
 // /messages/editText
-func (s *MessageService) EditMessage(ctx context.Context, msg *vkteams.EditMessage) error {
+func (s *MessageService) EditMessage(ctx context.Context, msg *EditMessage) error {
 	params := buildParams(&msg.Message)
 	params.Set("msgId", msg.MessageToEditID)
 	params.Set("text", msg.Text)
@@ -84,7 +82,7 @@ func (s *MessageService) EditMessage(ctx context.Context, msg *vkteams.EditMessa
 }
 
 // /messages/deleteMessage
-func (s *MessageService) DeleteMessages(ctx context.Context, msg *vkteams.DeleteMessage) error {
+func (s *MessageService) DeleteMessages(ctx context.Context, msg *DeleteMessage) error {
 	params := url.Values{
 		"chatId": {msg.ChatID},
 	}
@@ -113,7 +111,7 @@ func (s *MessageService) DeleteMessages(ctx context.Context, msg *vkteams.Delete
 }
 
 // /messages/answerCallbackQuery
-func (s *MessageService) AnswerCallback(ctx context.Context, answer *vkteams.AnswerCallback) error {
+func (s *MessageService) AnswerCallback(ctx context.Context, answer *AnswerCallback) error {
 	params := url.Values{
 		"queryId": {answer.QueryID},
 	}
