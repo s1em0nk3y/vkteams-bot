@@ -19,12 +19,17 @@ type EventService struct {
 func New(cli Client, pollSeconds uint) *EventService { return &EventService{cli, pollSeconds} }
 
 func (e *EventService) UpdatesChannel(ctx context.Context) <-chan Event {
-	lastEventId := 0
 	ch := make(chan Event)
 	log := zerolog.Ctx(ctx).With().Str("service", "event").Logger()
 	log.Info().Msg("Start listen")
 	go func() {
+		lastEventId := 0
 		defer close(ch)
+		events, err := e.pollEvents(ctx, lastEventId, int(e.pollSeconds))
+		log.Err(err).Int("event_count", len(events)).Msg("Drop unread messages")
+		if length := len(events); length > 0 {
+			lastEventId = events[length-1].ID
+		}
 		for {
 			select {
 			case <-ctx.Done():
@@ -32,7 +37,7 @@ func (e *EventService) UpdatesChannel(ctx context.Context) <-chan Event {
 				return
 			default:
 				log.Info().Int("event_id", lastEventId).Msg("Fetching events")
-				events, err := e.pollEvents(ctx, lastEventId, int(e.pollSeconds))
+				events, err = e.pollEvents(ctx, lastEventId, int(e.pollSeconds))
 				if err != nil {
 					log.Err(err).Msg("Error occured; sleeping 5s")
 					time.Sleep(time.Second * 5)
@@ -46,6 +51,9 @@ func (e *EventService) UpdatesChannel(ctx context.Context) <-chan Event {
 					case ch <- event:
 						log.Info().Int("event", event.ID).Msg("event read")
 					}
+				}
+				if length := len(events); length > 0 {
+					lastEventId = events[length-1].ID
 				}
 			}
 		}

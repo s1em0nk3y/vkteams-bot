@@ -12,7 +12,9 @@ func WithHTTPClient(cli *http.Client) Option {
 
 func WithApiURL(baseUrl string) Option {
 	return func(b *Bot) {
-		b.apiUrl = baseUrl
+		if baseUrl != "" {
+			b.apiUrl = baseUrl
+		}
 	}
 }
 

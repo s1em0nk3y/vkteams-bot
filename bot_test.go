@@ -337,7 +337,7 @@ func TestBot_Do(t *testing.T) {
 
 			assert.Equal(t, tt.want.StatusCode, got.StatusCode)
 			response := struct {
-				Ok bool `json:"Ok"`
+				Ok bool `json:"ok"`
 			}{}
 			assert.NoError(t, json.NewDecoder(got.Body).Decode(&response))
 			assert.Equal(t, tt.wantOk, response.Ok)

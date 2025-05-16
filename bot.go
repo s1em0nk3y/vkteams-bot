@@ -10,7 +10,6 @@ import (
 	"net/url"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/s1em0nk3y/vkteams-bot/api/event"
 	"github.com/s1em0nk3y/vkteams-bot/api/message"
 )
@@ -63,7 +62,6 @@ func (b *Bot) Do(req *http.Request) (*http.Response, error) {
 		return nil, errors.New("no request provided")
 	}
 	resp, err := b.client.Do(req)
-	log.Err(err).Msg("send request")
 	if err != nil {
 		return nil, fmt.Errorf("error occured when sending request: %w", err)
 	}

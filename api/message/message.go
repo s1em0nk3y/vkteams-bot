@@ -31,15 +31,16 @@ func (s *MessageService) SendText(ctx context.Context, msg *Message) (msgID stri
 	defer resp.Body.Close()
 
 	response := struct {
-		Id string `json:"msgId"`
-		Ok bool   `json:"Ok"`
+		Id          string `json:"msgId"`
+		Ok          bool   `json:"ok"`
+		Description string `json:"description"`
 	}{}
 
 	if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return "", fmt.Errorf("unable to decode response: %w", err)
 	}
 	if !response.Ok {
-		return "", ErrNotOk
+		return "", fmt.Errorf("%w: %s", ErrNotOk, response.Description)
 	}
 	return response.Id, nil
 }
@@ -70,13 +71,14 @@ func (s *MessageService) EditMessage(ctx context.Context, msg *EditMessage) erro
 	}
 	defer resp.Body.Close()
 	response := struct {
-		Ok bool `json:"Ok"`
+		Ok          bool   `json:"ok"`
+		Description string `json:"description"`
 	}{}
 	if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return fmt.Errorf("unable to decode response: %w", err)
 	}
 	if !response.Ok {
-		return ErrNotOk
+		return fmt.Errorf("%w: %s", ErrNotOk, response.Description)
 	}
 	return nil
 }
@@ -99,13 +101,14 @@ func (s *MessageService) DeleteMessages(ctx context.Context, msg *DeleteMessage)
 	}
 
 	response := struct {
-		Ok bool `json:"Ok"`
+		Ok          bool   `json:"ok"`
+		Description string `json:"description"`
 	}{}
 	if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return fmt.Errorf("unable to decode response: %w", err)
 	}
 	if !response.Ok {
-		return ErrNotOk
+		return fmt.Errorf("%w: %s", ErrNotOk, response.Description)
 	}
 	return nil
 }
@@ -135,13 +138,14 @@ func (s *MessageService) AnswerCallback(ctx context.Context, answer *AnswerCallb
 		return err
 	}
 	response := struct {
-		Ok bool `json:"Ok"`
+		Ok          bool   `json:"ok"`
+		Description string `json:"description"`
 	}{}
 	if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return fmt.Errorf("unable to decode response: %w", err)
 	}
 	if !response.Ok {
-		return ErrNotOk
+		return fmt.Errorf("%w: %s", ErrNotOk, response.Description)
 	}
 	return nil
 }

@@ -17,9 +17,10 @@ func (s *MessageService) sendFile(ctx context.Context, msg *FileMessage, path st
 		params.Set("fileId", msg.FileID)
 	}
 	response := struct {
-		Id     string `json:"msgId"`
-		FileID string `json:"fileId"`
-		Ok     bool   `json:"Ok"`
+		Id          string `json:"msgId"`
+		FileID      string `json:"fileId"`
+		Ok          bool   `json:"ok"`
+		Description string `json:"description"`
 	}{}
 
 	// Send POST; Upload file
@@ -65,7 +66,7 @@ func (s *MessageService) sendFile(ctx context.Context, msg *FileMessage, path st
 		return "", "", fmt.Errorf("unable to decode response: %w", err)
 	}
 	if !response.Ok {
-		return "", "", ErrNotOk
+		return "", "", fmt.Errorf("%w: %s", ErrNotOk, response.Description)
 	}
 	return response.Id, msg.FileID, nil
 }
