@@ -1,16 +1,26 @@
 package event
 
 type ChatType string
+type EventType string
 
 const (
-	ChatTypePrivate = "private"
-	ChatTypeGroup   = "group"
-	ChatTypeChannel = "channel"
+	// Chat types
+	ChatTypePrivate ChatType = "private"
+	ChatTypeGroup   ChatType = "group"
+	ChatTypeChannel ChatType = "channel"
+	// Event types
+	EventNewMessage      EventType = "newMessage"
+	EventEditedMessage   EventType = "editedMessage"
+	EventDeletedMessage  EventType = "deletedMessage"
+	EventPinnedMessage   EventType = "pinnedMessage"
+	EventUnpinnedMessage EventType = "unpinnedMessage"
+	EventNewChatMembers  EventType = "newChatMembers"
+	EventLeftChatMembers EventType = "leftChatMembers"
 )
 
 type Event struct {
-	ID      int    `json:"eventId"`
-	Type    string `json:"type"`
+	ID      int       `json:"eventId"`
+	Type    EventType `json:"type"`
 	Payload `json:"payload"`
 }
 
