@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/s1em0nk3y/vkteams-bot"
+	vkteams "github.com/s1em0nk3y/vkteams-bot/types"
 )
 
 type MessageService struct {
-	client *vkteams.Bot
+	client Client
 }
+
+func New(cli Client) MessageService { return MessageService{cli} }
 
 // /messages/sendText (Get)
 func (s *MessageService) SendText(ctx context.Context, msg *vkteams.Message) (msgID string, err error) {

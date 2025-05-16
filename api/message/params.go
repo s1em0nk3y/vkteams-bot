@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/url"
 
-	"github.com/s1em0nk3y/vkteams-bot"
+	"github.com/s1em0nk3y/vkteams-bot/types"
 )
 
-func buildParams(msg *vkteams.Message) url.Values {
+func buildParams(msg *types.Message) url.Values {
 	params := url.Values{
 		"chatId": {msg.ChatID},
 	}
@@ -22,7 +22,7 @@ func buildParams(msg *vkteams.Message) url.Values {
 		bytes, _ := json.Marshal(msg.KeyboardMarkup)
 		params.Set("inlineKeyboardMarkup", string(bytes))
 	}
-	if msg.ParseMode != vkteams.ParseModeUnknown {
+	if msg.ParseMode != types.ParseModeUnknown {
 		params.Set("parseMode", msg.ParseMode.String())
 	}
 	return params

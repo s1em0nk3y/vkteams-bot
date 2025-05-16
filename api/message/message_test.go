@@ -1,4 +1,4 @@
-package message
+package message_test
 
 import (
 	"bytes"
@@ -14,6 +14,8 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/s1em0nk3y/vkteams-bot"
+	"github.com/s1em0nk3y/vkteams-bot/api/message"
+	"github.com/s1em0nk3y/vkteams-bot/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -58,7 +60,7 @@ func TestMain(m *testing.M) {
 func TestMessageService_SendText(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *vkteams.Message
+		msg *types.Message
 	}
 	tests := []struct {
 		name      string
@@ -70,12 +72,12 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Correct use; Forwarding message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &vkteams.Message{
+				msg: &types.Message{
 					ChatID:        TestCfg.ChatID,
 					Text:          "Some <b>Test</b> Text",
 					ForwardChatID: TestCfg.ChatID,
 					ForwardMsgID:  TestCfg.MessageID,
-					ParseMode:     vkteams.ParseModeHTML,
+					ParseMode:     types.ParseModeHTML,
 				},
 			},
 			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
@@ -90,11 +92,11 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Correct use; Replying message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &vkteams.Message{
+				msg: &types.Message{
 					ChatID:     TestCfg.ChatID,
 					Text:       "Some Test Text",
 					ReplyMsgID: TestCfg.MessageID,
-					ParseMode:  vkteams.ParseModeMarkdown,
+					ParseMode:  types.ParseModeMarkdown,
 				},
 			},
 			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
@@ -109,11 +111,11 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Reply to nonexist message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &vkteams.Message{
+				msg: &types.Message{
 					ChatID:     TestCfg.ChatID,
 					Text:       "Some Test Text",
 					ReplyMsgID: "NON EXIST REPLY ID",
-					ParseMode:  vkteams.ParseModeMarkdown,
+					ParseMode:  types.ParseModeMarkdown,
 				},
 			},
 			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
@@ -129,7 +131,7 @@ func TestMessageService_SendText(t *testing.T) {
 					return ctx
 
 				}(),
-				msg: &vkteams.Message{
+				msg: &types.Message{
 					ChatID: TestCfg.ChatID,
 					Text:   "Context canceled",
 				},
@@ -143,26 +145,26 @@ func TestMessageService_SendText(t *testing.T) {
 			name: "Correct usage; create buttons",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &vkteams.Message{
+				msg: &types.Message{
 					ChatID:    TestCfg.ChatID,
 					Text:      "Some Test Text",
-					ParseMode: vkteams.ParseModeHTML,
-					KeyboardMarkup: &vkteams.KeyboardMarkup{
+					ParseMode: types.ParseModeHTML,
+					KeyboardMarkup: &types.KeyboardMarkup{
 						{
 							{
 								Text:     "First",
-								Style:    vkteams.ButtonAttention,
+								Style:    types.ButtonAttention,
 								Callback: "somecallback1",
 							},
 							{
 								Text:  "Second Button, With Url",
 								URL:   "https://example.com",
-								Style: vkteams.ButtonBase,
+								Style: types.ButtonBase,
 							},
 							{
 								Text:     "Third, Primary style button",
 								Callback: "somecallback3",
-								Style:    vkteams.ButtonPrimary,
+								Style:    types.ButtonPrimary,
 							},
 						},
 					},
@@ -179,9 +181,7 @@ func TestMessageService_SendText(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MessageService{
-				client: testBot,
-			}
+			s := message.New(testBot)
 			gotMsgID, err := s.SendText(tt.args.ctx, tt.args.msg)
 			tt.assertion(t, err)
 			if err == nil {
@@ -194,7 +194,7 @@ func TestMessageService_SendText(t *testing.T) {
 func TestMessageService_SendFile(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *vkteams.FileMessage
+		msg *types.FileMessage
 	}
 	tests := []struct {
 		name       string
@@ -208,8 +208,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send raw data",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessage{
-					Message: vkteams.Message{
+				msg: &types.FileMessage{
+					Message: types.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Some Text",
 					},
@@ -226,8 +226,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send by file id",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessage{
-					Message: vkteams.Message{
+				msg: &types.FileMessage{
+					Message: types.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Description",
 					},
@@ -243,8 +243,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send by non exist file id",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessage{
-					Message: vkteams.Message{
+				msg: &types.FileMessage{
+					Message: types.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "Description",
 					},
@@ -259,8 +259,8 @@ func TestMessageService_SendFile(t *testing.T) {
 			name: "Send Voice file",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessage{
-					Message: vkteams.Message{
+				msg: &types.FileMessage{
+					Message: types.Message{
 						ChatID: TestCfg.ChatID,
 					},
 					Contents: func() io.Reader {
@@ -284,9 +284,7 @@ func TestMessageService_SendFile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MessageService{
-				client: testBot,
-			}
+			s := message.New(testBot)
 			gotMsgID, gotFileID, err := s.SendFile(tt.args.ctx, tt.args.msg)
 			if tt.assertion != nil {
 				tt.assertion(t, err)
@@ -302,7 +300,7 @@ func TestMessageService_SendFile(t *testing.T) {
 func TestMessageService_SendVoice(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *vkteams.FileMessage
+		msg *types.FileMessage
 	}
 	tests := []struct {
 		name       string
@@ -316,8 +314,8 @@ func TestMessageService_SendVoice(t *testing.T) {
 			name: "Send Voice file",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.FileMessage{
-					Message: vkteams.Message{
+				msg: &types.FileMessage{
+					Message: types.Message{
 						ChatID: TestCfg.ChatID,
 					},
 					Contents: func() io.Reader {
@@ -341,9 +339,7 @@ func TestMessageService_SendVoice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MessageService{
-				client: testBot,
-			}
+			s := message.New(testBot)
 			gotMsgID, gotFileID, err := s.SendVoice(tt.args.ctx, tt.args.msg)
 			if tt.assertion != nil {
 				tt.assertion(t, err)
@@ -359,7 +355,7 @@ func TestMessageService_SendVoice(t *testing.T) {
 func TestMessageService_EditMessage(t *testing.T) {
 	type args struct {
 		ctx context.Context
-		msg *vkteams.EditMessage
+		msg *types.EditMessage
 	}
 	tests := []struct {
 		name      string
@@ -370,8 +366,8 @@ func TestMessageService_EditMessage(t *testing.T) {
 			name: "Edit Non exist message",
 			args: args{
 				ctx: testLogger.WithContext(context.Background()),
-				msg: &vkteams.EditMessage{
-					Message: vkteams.Message{
+				msg: &types.EditMessage{
+					Message: types.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "EDITED MESSAGE",
 					},
@@ -379,15 +375,15 @@ func TestMessageService_EditMessage(t *testing.T) {
 				},
 			},
 			assertion: func(tt assert.TestingT, err error, i ...interface{}) bool {
-				return assert.ErrorIs(tt, err, ErrNotOk)
+				return assert.ErrorIs(tt, err, message.ErrNotOk)
 			},
 		},
 		{
 			name: "Correct edit",
 			args: args{
 				ctx: context.Background(),
-				msg: &vkteams.EditMessage{
-					Message: vkteams.Message{
+				msg: &types.EditMessage{
+					Message: types.Message{
 						ChatID: TestCfg.ChatID,
 						Text:   "EDITED MESSAGE",
 					},
@@ -401,25 +397,19 @@ func TestMessageService_EditMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MessageService{
-				client: testBot,
-			}
+			s := message.New(testBot)
 			tt.assertion(t, s.EditMessage(tt.args.ctx, tt.args.msg))
 		})
 	}
 }
 
 func TestMessageService_DeleteMessages(t *testing.T) {
-	type fields struct {
-		client *vkteams.Bot
-	}
 	type args struct {
 		ctx context.Context
-		msg *vkteams.DeleteMessage
+		msg *types.DeleteMessage
 	}
 	tests := []struct {
 		name      string
-		fields    fields
 		args      args
 		assertion assert.ErrorAssertionFunc
 	}{
@@ -427,25 +417,19 @@ func TestMessageService_DeleteMessages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MessageService{
-				client: tt.fields.client,
-			}
+			s := message.New(testBot)
 			tt.assertion(t, s.DeleteMessages(tt.args.ctx, tt.args.msg))
 		})
 	}
 }
 
 func TestMessageService_AnswerCallback(t *testing.T) {
-	type fields struct {
-		client *vkteams.Bot
-	}
 	type args struct {
 		ctx    context.Context
-		answer *vkteams.AnswerCallback
+		answer *types.AnswerCallback
 	}
 	tests := []struct {
 		name      string
-		fields    fields
 		args      args
 		assertion assert.ErrorAssertionFunc
 	}{
@@ -453,9 +437,7 @@ func TestMessageService_AnswerCallback(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &MessageService{
-				client: tt.fields.client,
-			}
+			s := message.New(testBot)
 			tt.assertion(t, s.AnswerCallback(tt.args.ctx, tt.args.answer))
 		})
 	}

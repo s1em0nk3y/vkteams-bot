@@ -1,4 +1,4 @@
-package vkteams
+package types
 
 import "io"
 
