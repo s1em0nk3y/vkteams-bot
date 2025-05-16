@@ -11,25 +11,33 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/s1em0nk3y/vkteams-bot/api/event"
+	"github.com/s1em0nk3y/vkteams-bot/api/message"
 )
 
 const defaultUrl = "https://myteam.mail.ru/bot/v1"
 
 type Bot struct {
-	client *http.Client
-	apiUrl string
-	token  string
+	client      *http.Client
+	apiUrl      string
+	token       string
+	pollSeconds uint
+	*message.MessageService
+	*event.EventService
 }
 
 func New(token string, opts ...Option) *Bot {
 	b := &Bot{
-		client: http.DefaultClient,
-		apiUrl: defaultUrl,
-		token:  token,
+		client:      http.DefaultClient,
+		apiUrl:      defaultUrl,
+		token:       token,
+		pollSeconds: 60,
 	}
 	for _, opt := range opts {
 		opt(b)
 	}
+	b.EventService = event.New(b, b.pollSeconds)
+	b.MessageService = message.New(b)
 	return b
 }
 

@@ -13,7 +13,7 @@ type MessageService struct {
 	client Client
 }
 
-func New(cli Client) MessageService { return MessageService{cli} }
+func New(cli Client) *MessageService { return &MessageService{cli} }
 
 // /messages/sendText (Get)
 func (s *MessageService) SendText(ctx context.Context, msg *Message) (msgID string, err error) {

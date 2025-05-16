@@ -15,3 +15,9 @@ func WithApiURL(baseUrl string) Option {
 		b.apiUrl = baseUrl
 	}
 }
+
+func WithPollSeconds(seconds uint) Option {
+	return func(b *Bot) {
+		b.pollSeconds = seconds
+	}
+}
