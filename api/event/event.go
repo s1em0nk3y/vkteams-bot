@@ -25,7 +25,7 @@ func (e *EventService) UpdatesChannel(ctx context.Context) <-chan Event {
 	go func() {
 		lastEventId := 0
 		defer close(ch)
-		events, err := e.pollEvents(ctx, lastEventId, int(e.pollSeconds))
+		events, err := e.pollEvents(ctx, lastEventId, 0)
 		log.Err(err).Int("event_count", len(events)).Msg("Drop unread messages")
 		if length := len(events); length > 0 {
 			lastEventId = events[length-1].ID
